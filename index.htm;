@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GHS Hazard Search Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            opacity: 0.95;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .header .subtitle {
+            font-size: 13px;
+            opacity: 0.85;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .search-controls {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .search-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .search-hint {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 15px;
+            font-style: italic;
+            padding: 10px;
+            background: #f0f0f0;
+            border-left: 3px solid #667eea;
+            border-radius: 4px;
+        }
+        
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-group label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .input-group input {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        .input-group input::placeholder {
+            color: #999;
+            font-size: 13px;
+        }
+        
+        .button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .btn-export {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-export:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+        }
+        
+        .results-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .results-header h2 {
+            font-size: 20px;
+            color: #333;
+            font-weight: 700;
+        }
+        
+        .results-count {
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .results-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+            gap: 20px;
+        }
+        
+        .result-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .result-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+            transform: translateY(-4px);
+        }
+        
+        .chemical-header {
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .chemical-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+            word-break: break-word;
+            margin-bottom: 6px;
+        }
+        
+        .cas-number {
+            font-size: 13px;
+            color: #666;
+            font-weight: 600;
+            font-family: monospace;
+        }
+        
+        .detail-section {
+            margin-bottom: 16px;
+        }
+        
+        .detail-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .detail-value {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+        
+        .badge-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .badge-hazard {
+            background: #ffe0e0;
+            color: #c0392b;
+            border: 1px solid #e74c3c;
+        }
+        
+        .badge-pictogram {
+            background: #fff4e0;
+            color: #d68910;
+            border: 1px solid #f39c12;
+        }
+        
+        .badge-signal {
+            background: #e0f2ff;
+            color: #1565c0;
+            border: 1px solid #3498db;
+        }
+        
+        .value-box {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            grid-column: 1/-1;
+        }
+        
+        .no-results-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        @media (max-width: 1024px) {
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-row {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚠️ GHS Hazard Search Engine</h1>
+            <p>Globally Harmonized System Chemical Hazard Classification</p>
+            <p class="subtitle">Search embedded data by CAS Number, Chemical Name, Hazard Category, Pictogram, Signal Word, or Hazard Statement</p>
+        </div>
+        
+        <div class="content">
+            <!-- Search Controls -->
+            <div class="search-controls">
+                <div class="search-title">🔍 Search Hazard Information</div>
+                <div class="search-hint">💡 Tip: Use exact match by default. Add asterisks (*) around your search term for partial matching (e.g., *benzene*)</div>
+                
+                <div class="search-grid">
+                    <div class="input-group">
+                        <label for="casSearch">CAS No.</label>
+                        <input 
+                            type="text" 
+                            id="casSearch" 
+                            placeholder="e.g., 1332-21-4"
+                            onkeypress="if(event.key === 'Enter') searchChemicals()"
+                        >
+                    </div>
+                    <div class="input-group">
+                        <label for="chemicalSearch">Chemical Name</label>
+                        <input 
+                            type="text" 
+                            id="chemicalSearch" 
+                            placeholder="e.g., Asbestos or *benzene*"
+                            onkeypress="if(event.key === 'Enter') searchChemicals()"
+                        >
+                    </div>
+                    <div class="input-group">
+                        <label for="hazardSearch">Hazard Category</label>
+                        <input 
+                            type="text" 
+                            id="hazardSearch" 
+                            placeholder="e.g., Acute Toxicity"
+                            onkeypress="if(event.key === 'Enter') searchChemicals()"
+                        >
+                    </div>
+                    <div class="input-group">
+                        <label for="pictogramSearch">Pictogram Codes</label>
+                        <input 
+                            type="text" 
+                            id="pictogramSearch" 
+                            placeholder="e.g., GHS06, GHS08"
+                            onkeypress="if(event.key === 'Enter') searchChemicals()"
+                        >
+                    </div>
+                    <div class="input-group">
+                        <label for="signalSearch">Signal Word</label>
+                        <input 
+                            type="text" 
+                            id="signalSearch" 
+                            placeholder="e.g., Danger, Warning"
+                            onkeypress="if(event.key === 'Enter') searchChemicals()"
+                        >
+                    </div>
+                    <div class="input-group">
+                        <label for="statementSearch">Hazard Statement Code/Text</label>
+                        <input 
+                            type="text" 
+                            id="statementSearch" 
+                            placeholder="e.g., H350, H315, or *cancer*"
+                            onkeypress="if(event.key === 'Enter') searchChemicals()"
+                        >
+                    </div>
+                </div>
+                
+                <!-- Button Row -->
+                <div class="button-row">
+                    <button class="btn-primary" onclick="searchChemicals()">🔍 Search</button>
+                    <button class="btn-secondary" onclick="resetSearch()">↺ Clear All</button>
+                    <button class="btn-export" onclick="exportResults()">📥 Export CSV</button>
+                </div>
+            </div>
+            
+            <!-- Statistics -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalCount">0</div>
+                    <div class="stat-label">Total Chemicals</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="matchCount">0</div>
+                    <div class="stat-label">Results Found</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="hazardCount">0</div>
+                    <div class="stat-label">Hazard Categories</div>
+                </div>
+            </div>
+            
+            <!-- Results Section -->
+            <div id="resultsSection" style="display: none;">
+                <div class="results-header">
+                    <h2>Results</h2>
+                    <span class="results-count" id="resultsSummary">0 chemicals found</span>
+                </div>
+                <div class="results-container" id="resultsContainer"></div>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="emptyState">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🧪</div>
+                    <p style="font-size: 16px; margin-bottom: 10px;">Welcome to GHS Hazard Search</p>
+                    <p style="font-size: 13px; color: #aaa;">Enter search terms above to find chemicals by CAS Number, Chemical Name, Hazard Category, Pictogram Codes, Signal Word, or Hazard Statement</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EMBEDDED CSV DATA -->
+    <script id="csv-data" type="text/csv">CAS No.,Chemical Name,Hazard Category,Pictogram Codes,Hazard Statement Code,Hazard Statement
+ "121-20-0","cinerin II;  3-(but-2-enyl)-2-methyl-4-oxocyclopent-2-enyl 2,2-dimethyl-3-(3-methoxy-2-methyl-3-oxoprop-1-enyl)cyclopropanecarboxylate","Acute toxicity – category 4; Hazardous to the aquatic environment (acute) – category 1; Hazardous to the aquatic environment (chronic) – category 1","GHS07; GHS09; Warning","H302; H410","Harmful if swallowed; Very toxic to aquatic life with long-lasting effects"
+"83623-61-4     ","((4-phenylbutyl)hydroxyphosphoryl)acetic acid","Specific target organ toxicity (repeated exposure) – category 2; Eye damage – category 1; Skin sensitisation – category 1","GHS08; GHS05; Danger","H373; H318; H317","May cause damage to organs through prolonged or repeated exposure; Causes serious eye damage; May cause an allergic skin reaction"
+"105813-13-6    ","(-)(3S,4R)-4-(4-fluorophenyl)-3-(3,4-methylenedioxy-phenoxymethyl)-N-benzylpiperidine hydrochloride","Acute toxicity – category 4; Skin sensitisation – category 1; Hazardous to the aquatic environment (acute) – category 1; Hazardous to the aquatic environment (chronic) – category 1","GHS07; GHS09; Warning","H302; H317; H410","Harmful if swallowed; May cause an allergic skin reaction; Very toxic to aquatic life with long-lasting effects"
+"105812-81-5    ","(-)-trans-4-(4'-fluorophenyl)-3-hydroxymethyl-N-methylpiperidine","Acute toxicity – category 4; Eye damage – category 1; Hazardous to the aquatic environment (chronic) – category 2","GHS05; GHS07; GHS09; Danger","H302; H318; H411","Harmful if swallowed; Causes serious eye damage; Toxic to aquatic life with long-lasting effects"
+"133636-82-5    ","(+)-(1S,2S,3S,5R)-2,6,6-trimethylbicyclo[3.1.1]heptane-3-spiro-1'-(cyclohex-2'-en-4'-one)","Skin corrosion – category 1B; Skin sensitisation – category 1; Hazardous to the aquatic environment (acute) – category 1; Hazardous to the aquatic environment (chronic) – category 1","GHS05; GHS07; GHS09; Danger","H314; H317; H410","Causes severe skin burns and eye damage; May cause an allergic skin reaction; Very toxic to aquatic life with long-lasting effects"
+"107898-54-4    ","(+/-) trans-3,3-dimethyl-5-(2,2,3-trimethyl-cyclopent-3-en-1-yl)-pent-4-en-2-ol","Skin irritation – category 2; Hazardous to the aquatic environment (acute) – category 1; Hazardous to the aquatic environment (chronic) – category 1","GHS07; GHS09; Warning","H315; H410","Causes skin irritation; Very toxic to aquatic life with long-lasting effects"
+"","(+/-)-(R,R)-6-fluoro-3,4-dihydro-2-oxiranyl-2H-1-benzopyran;  6-fluoro-2-(2-oxiranyl)chromane","Skin sensitisation – category 1; Hazardous to the aquatic environment (chronic) – category 2","GHS07; GHS09; Warning","H317; H411","May cause an allergic skin reaction; Toxic to aquatic life with long-lasting effects"
+</script>
+
+    <script>
+        let chemicalsData = [];
+        let searchResults = [];
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            const csvText = document.getElementById('csv-data').textContent;
+            parseCSV(csvText);
+            updateStats();
+        });
+
+        // Parse CSV data
+        function parseCSV(csv) {
+            chemicalsData = [];
+            const lines = csv.trim().split('\n');
+            
+            if (lines.length < 2) {
+                console.error('Invalid CSV format');
+                return;
+            }
+            
+            // Parse header row
+            const headerLine = lines[0];
+            const headers = parseCSVLine(headerLine).map(h => h.toLowerCase().trim());
+            
+            // Find column indices
+            const casIdx = headers.findIndex(h => h.includes('cas'));
+            const chemicalIdx = headers.findIndex(h => h.includes('chemical') && h.includes('name'));
+            const hazardIdx = headers.findIndex(h => h.includes('hazard') && h.includes('category'));
+            const pictogramIdx = headers.findIndex(h => h.includes('pictogram'));
+            const signalIdx = headers.findIndex(h => h.includes('signal'));
+            const statementCodeIdx = headers.findIndex(h => h.includes('hazard statement code'));
+            const statementIdx = headers.findIndex(h => h.includes('hazard statement') && !h.includes('code'));
+
+            // Parse data rows
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                const cells = parseCSVLine(line);
+                
+                if (cells.length > Math.max(casIdx, chemicalIdx)) {
+                    const cas = cells[casIdx] ? cells[casIdx].trim() : '';
+                    const chemical = cells[chemicalIdx] ? cells[chemicalIdx].trim() : '';
+                    
+                    if (chemical || cas) {
+                        chemicalsData.push({
+                            cas: cas,
+                            chemical: chemical,
+                            hazardCategory: cells[hazardIdx] ? cells[hazardIdx].trim() : '',
+                            pictograms: cells[pictogramIdx] ? cells[pictogramIdx].trim() : '',
+                            signalWord: cells[signalIdx] ? cells[signalIdx].trim() : '',
+                            statementCode: cells[statementCodeIdx] ? cells[statementCodeIdx].trim() : '',
+                            statement: cells[statementIdx] ? cells[statementIdx].trim() : ''
+                        });
+                    }
+                }
+            }
+        }
+
+        // Parse CSV line handling quoted values
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current);
+            return result;
+        }
+
+        // Check if query contains wildcards and perform appropriate matching
+        function matchesQuery(fieldValue, query) {
+            if (!query) return true;
+
+            const query_lower = query.toLowerCase();
+            const field_lower = fieldValue.toLowerCase();
+
+            // Check if query has asterisks for partial matching
+            if (query_lower.includes('*')) {
+                // Convert wildcard pattern to regex
+                const regex_pattern = query_lower
+                    .replace(/\*/g, '.*')  // * becomes .*
+                    .replace(/\?/g, '.');  // ? becomes . (optional: for single char wildcard)
+                return new RegExp(`^${regex_pattern}$`).test(field_lower);
+            } else {
+                // Exact match (case-insensitive)
+                return field_lower === query_lower;
+            }
+        }
+
+        // Search chemicals
+        function searchChemicals() {
+            const casQuery = document.getElementById('casSearch').value.trim();
+            const chemicalQuery = document.getElementById('chemicalSearch').value.trim();
+            const hazardQuery = document.getElementById('hazardSearch').value.trim();
+            const pictogramQuery = document.getElementById('pictogramSearch').value.trim();
+            const signalQuery = document.getElementById('signalSearch').value.trim();
+            const statementQuery = document.getElementById('statementSearch').value.trim();
+
+            searchResults = chemicalsData.filter(chem => {
+                let match = true;
+
+                if (casQuery) {
+                    match = match && matchesQuery(chem.cas, casQuery);
+                }
+                if (chemicalQuery) {
+                    match = match && matchesQuery(chem.chemical, chemicalQuery);
+                }
+                if (hazardQuery) {
+                    // For hazard category, check if any category matches
+                    const categories = chem.hazardCategory.split(';').map(c => c.trim());
+                    match = match && categories.some(cat => matchesQuery(cat, hazardQuery));
+                }
+                if (pictogramQuery) {
+                    // For pictograms, check if any pictogram matches
+                    const pictograms = chem.pictograms.split(';').map(p => p.trim());
+                    match = match && pictograms.some(pic => matchesQuery(pic, pictogramQuery));
+                }
+                if (signalQuery) {
+                    // For signal words, check if any signal word matches
+                    const signals = chem.signalWord.split(';').map(s => s.trim());
+                    match = match && signals.some(sig => matchesQuery(sig, signalQuery));
+                }
+                if (statementQuery) {
+                    // For statements, check both code and full statement
+                    const codeMatch = matchesQuery(chem.statementCode, statementQuery);
+                    const statementMatch = matchesQuery(chem.statement, statementQuery);
+                    match = match && (codeMatch || statementMatch);
+                }
+
+                return match;
+            });
+
+            displayResults();
+            updateStats();
+        }
+
+        // Display results
+        function displayResults() {
+            const container = document.getElementById('resultsContainer');
+            const section = document.getElementById('resultsSection');
+            const emptyState = document.getElementById('emptyState');
+
+            if (searchResults.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">🔍</div>
+                        <p>No chemicals found matching your search criteria.</p>
+                        <p style="font-size: 12px; margin-top: 10px; color: #bbb;">Try adjusting your search terms or clear filters</p>
+                    </div>
+                `;
+                section.style.display = 'block';
+                emptyState.style.display = 'none';
+            } else {
+                container.innerHTML = searchResults.map(chem => `
+                    <div class="result-card">
+                        <div class="chemical-header">
+                            <div class="chemical-name">${escapeHtml(chem.chemical)}</div>
+                            ${chem.cas ? `<div class="cas-number">CAS: ${escapeHtml(chem.cas)}</div>` : ''}
+                        </div>
+
+                        ${chem.hazardCategory && chem.hazardCategory !== 'None' ? `
+                            <div class="detail-section">
+                                <label class="detail-label">Hazard Category</label>
+                                <div class="badge-group">
+                                    ${chem.hazardCategory.split(';').map(h => 
+                                        `<span class="badge badge-hazard">${escapeHtml(h.trim())}</span>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${chem.pictograms && chem.pictograms !== 'None' ? `
+                            <div class="detail-section">
+                                <label class="detail-label">Pictogram Codes</label>
+                                <div class="badge-group">
+                                    ${chem.pictograms.split(';').map(p => 
+                                        `<span class="badge badge-pictogram">${escapeHtml(p.trim())}</span>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${chem.signalWord && chem.signalWord !== 'None' ? `
+                            <div class="detail-section">
+                                <label class="detail-label">Signal Word</label>
+                                <div class="badge-group">
+                                    ${chem.signalWord.split(';').map(s => 
+                                        `<span class="badge badge-signal">${escapeHtml(s.trim())}</span>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${chem.statementCode && chem.statementCode !== 'None' ? `
+                            <div class="detail-section">
+                                <label class="detail-label">Hazard Statement Code</label>
+                                <div class="value-box">${escapeHtml(chem.statementCode)}</div>
+                            </div>
+                        ` : ''}
+
+                        ${chem.statement && chem.statement !== 'None' ? `
+                            <div class="detail-section">
+                                <label class="detail-label">Hazard Statement</label>
+                                <div class="value-box">${escapeHtml(chem.statement)}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+                
+                section.style.display = 'block';
+                emptyState.style.display = 'none';
+            }
+
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalCount').textContent = chemicalsData.length;
+            document.getElementById('matchCount').textContent = searchResults.length;
+            
+            const hazardSet = new Set();
+            searchResults.forEach(c => {
+                if (c.hazardCategory && c.hazardCategory !== 'None') {
+                    c.hazardCategory.split(';').forEach(h => hazardSet.add(h.trim()));
+                }
+            });
+            document.getElementById('hazardCount').textContent = hazardSet.size;
+            
+            const summary = searchResults.length === chemicalsData.length 
+                ? `All ${searchResults.length} chemicals` 
+                : `${searchResults.length} of ${chemicalsData.length} chemicals`;
+            document.getElementById('resultsSummary').textContent = summary;
+        }
+
+        // Reset search
+        function resetSearch() {
+            document.getElementById('casSearch').value = '';
+            document.getElementById('chemicalSearch').value = '';
+            document.getElementById('hazardSearch').value = '';
+            document.getElementById('pictogramSearch').value = '';
+            document.getElementById('signalSearch').value = '';
+            document.getElementById('statementSearch').value = '';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+            searchResults = [];
+            updateStats();
+        }
+
+        // Export results
+        function exportResults() {
+            if (searchResults.length === 0) {
+                alert('No results to export. Please perform a search first.');
+                return;
+            }
+
+            const headers = ['CAS No.', 'Chemical Name', 'Hazard Category', 'Pictogram Codes', 'Signal Word', 'Hazard Statement Code', 'Hazard Statement'];
+            let csv = headers.map(h => `"${h}"`).join(',') + '\n';
+
+            searchResults.forEach(chem => {
+                const row = [
+                    chem.cas,
+                    chem.chemical,
+                    chem.hazardCategory,
+                    chem.pictograms,
+                    chem.signalWord,
+                    chem.statementCode,
+                    chem.statement
+                ];
+                csv += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `ghs-hazard-search-${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+</html>
